@@ -1,0 +1,193 @@
+#!/usr/local/bin/bash
+#
+# Script Name: optim_and_batch_convert_webp
+#
+# Description: Converts all the files passed as input
+#              to the .webp format using the cwebp
+#              command line tool
+#
+#
+# Author: Jesse Khaira
+# Date: 2023-02-14
+# Version: 1.0
+# Usage: optim_and_batch_convert_webp [OPTIONS] [patterns...]
+
+# By default, if no patterns are passed, all the images in the
+# current directory will be translated to .webp and stored in
+# the current working directory, if no output dir is specified
+
+QUALITY=75
+OUTPUT_DIR='./webp_images'
+FILES_TO_CONVERT=(*)
+DIR_OPTIMIZED_IMAGES='./optimized_images'
+NO_STATS_IMAGEOPTIM=""
+RESIZE_IMAGES=false
+
+# Args below are for resizing images. We have four variables below,
+# with three width variables for tablets, mobiles and desktops,
+# that can be set by argument
+RESIZE_IMAGES=false
+declare -i WIDTH_TABLET=1200
+declare -i WIDTH_MOBILE=615
+declare -i WIDTH_DESKTOP=1920
+
+help() {
+    cat <<-END
+Usage: optim_and_batch_convert_webp [ -h ]
+                 [ -o string ] [ -q int ]
+                 [ -k string ] [ -S ]
+                 [ -r ] [ -t int ] 
+                 [-m int ] [-d int ]
+                 [patterns...] 
+
+Options:
+  -h                     Output usage information
+
+  -S                     For ImageOptim, if specified, no file size saving or loss info
+                         will be outputted
+
+  -o string              Output directory for webp images, defaults
+                         to ./webp_images
+
+  -q int                 Quality to use when converting to webp
+                         defaults to 75
+
+  -k string              Output directory for optimized images from imageoptim,
+                         defaults to ./optimized_images
+
+  -r                     If set, image resizing will be performed with a default width
+                         for tablets of 1200 px, 615px for mobiles, and 1920px for
+                         desktops. If a single image is passed as input to the command,
+                         with the -r option set, then three images will be produced as
+                         output for mobiles, tablets, and desktops. If more then one
+                         image is passed as input, then the filenames will be parsed
+                         accordingly to determine the images meant for various devices,
+                         as described below. 
+
+  -t int                 If resizing is set, this is the width that tablet images will be
+                         resized to. Defaults to 1200px. If more then one image is passed
+                         to the command, then the resizing will target images with a filename
+                         that include "-tablet" at the end of the name. If none are detected,
+                         then resizing will not occur. 
+
+  -m int                 If resizing is set, this is the width that mobile images will be
+                         resized to. Defaults to 615px. If more then one image is passed
+                         to the command, then the resizing will target images with a filename
+                         that include "-mobile" at the end of the name. If none are detected,
+                         then resizing will not occur. 
+
+  -d int                 If resizing is set, this is the width that desktop images will be
+                         resized to. Defaults to 1920px. If more then one image is passed
+                         to the command, then the resizing will target images with a filename
+                         that include "-desktop" at the end of the name. If none are detected,
+                         then resizing will not occur. 
+END
+}
+
+optim_and_batch_process_webp() {
+    declare -a filtered_file_list
+    filter_list_images filtered_file_list "$@"
+
+    optimize_files "${filtered_file_list[@]}"
+
+    for file in "${filtered_file_list[@]}"; do
+        process_to_webp_logic "${file}"
+    done
+}
+
+optimize_files() {
+    if [[ ! -d "${DIR_OPTIMIZED_IMAGES}" ]]; then
+        mkdir "${DIR_OPTIMIZED_IMAGES}"
+    fi
+
+    for file in "$@"; do
+        file_name_without_path="${file##*/}"
+        cp "${file}" "${DIR_OPTIMIZED_IMAGES}/${file_name_without_path}"
+    done
+
+    # run imageoptim at once over every image in the optimized_images directory
+    imageoptim "${NO_STATS_IMAGEOPTIM}" "${DIR_OPTIMIZED_IMAGES}/*"
+}
+
+filter_list_images() {
+    declare -n output="$1"
+    output=()
+    for file in "$@"; do
+        if [[ "${file}" =~ \.(jpeg|jpg|png|webp|tiff|tif)$ ]]; then
+            output+=("${file}")
+        fi
+    done
+}
+
+process_to_webp_logic() {
+    if [[ ! -d "${OUTPUT_DIR}" ]]; then
+        mkdir "${OUTPUT_DIR}"
+    fi
+
+    file="$1"
+    file_name_without_path="${file##*/}"
+    optimized_file_location="${DIR_OPTIMIZED_IMAGES}/${file_name_without_path}"
+    base_file_name="${file_name_without_path%.*}"
+    cwebp -q "${QUALITY}" \
+        "${optimized_file_location}" -o "${OUTPUT_DIR}/${base_file_name}.webp"
+    echo -e "\n\n"
+}
+
+if [[ $1 == "help" ]]; then
+    help
+    exit 1
+fi
+
+while getopts ":hSo:q:k:" optarg "$@"; do
+    case $optarg in
+    :) ## will run when no args provied for o and q options
+        echo "Option -$OPTARG requires an argument." >&2
+        exit 1
+        ;;
+
+    \?)
+        echo "Invalid option: -$OPTARG" >&2
+        exit 1
+        ;;
+
+    h)
+        help
+        exit 0
+        ;;
+
+    o)
+        OUTPUT_DIR=$OPTARG
+        ;;
+
+    k)
+        DIR_OPTIMIZED_IMAGES=$OPTARG
+        ;;
+
+    S)
+        NO_STATS_IMAGEOPTIM="-S"
+        ;;
+
+    q)
+        if [[ "${OPTARG}" =~ ^-?[0-9]+$ ]]; then
+            if ((OPTARG <= 100 && OPTARG >= 0)); then
+                QUALITY=$OPTARG
+            else
+                echo "Quality must be an integer between 0 and 100" >&2
+                exit 1
+            fi
+        else
+            echo "Quality must be an integer"
+            exit 1
+        fi
+        ;;
+    esac
+done
+
+shift $((OPTIND - 1))
+echo "quality: $QUALITY, output_webp: $OUTPUT_DIR, output_optim: ${DIR_OPTIMIZED_IMAGES} "
+
+if (($# == 0)); then
+    optim_and_batch_process_webp "${FILES_TO_CONVERT[@]}"
+else
+    optim_and_batch_process_webp "$@"
+fi
