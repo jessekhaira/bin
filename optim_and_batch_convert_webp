@@ -156,15 +156,30 @@ while getopts ":hSo:q:k:rt:m:d:" optarg "$@"; do
         ;;
 
     m)
-        WIDTH_MOBILE=$OPTARG
+        if eval verify_size "${OPTARG}" 0 2200; then
+            WIDTH_MOBILE=$OPTARG
+        else
+            echo "Size must be an integer between 0 and 2200px"
+            exit 1
+        fi
         ;;
 
     t)
-        WIDTH_TABLET=$OPTARG
+        if eval verify_size "${OPTARG}" 0 2200; then
+            WIDTH_TABLET=$OPTARG
+        else
+            echo "Size must be an integer between 0 and 2200px"
+            exit 1
+        fi
         ;;
 
     d)
-        WIDTH_DESKTOP=$OPTARG
+        if eval verify_size "${OPTARG}" 0 2200; then
+            WIDTH_DESKTOP=$OPTARG
+        else
+            echo "Size must be an integer between 0 and 2200px"
+            exit 1
+        fi
         ;;
 
     r)
@@ -197,8 +212,8 @@ done
 shift $((OPTIND - 1))
 echo "quality: $QUALITY, output_webp: $OUTPUT_DIR, output_optim: ${DIR_OPTIMIZED_IMAGES} "
 
-if (($# == 0)); then
-    optim_and_batch_process_webp "${FILES_TO_CONVERT[@]}"
-else
-    optim_and_batch_process_webp "$@"
-fi
+# if (($# == 0)); then
+#     optim_and_batch_process_webp "${FILES_TO_CONVERT[@]}"
+# else
+#     optim_and_batch_process_webp "$@"
+# fi
