@@ -156,6 +156,11 @@ resize_images() {
     # appropriately
     else
         for file in "$@"; do
+
+            # if the file name has mobile, or tablet, or desktop somewhere within
+            # it, we will not need to add -mobile or -desktop or -tablet within the
+            # name -- so the new file name is just the path to the directory for
+            # optimized images + the file name without path
             file_name_without_path="${file##*/}"
             new_file_name="${DIR_OPTIMIZED_IMAGES}/${file_name_without_path}"
 
