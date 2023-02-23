@@ -157,7 +157,7 @@ resize_images() {
     else
         for file in "$@"; do
 
-            # if the file name has mobile, or tablet, or desktop somewhere within
+            # if the file name has -mobile, or tablet, or desktop somewhere within
             # it, we will not need to add -mobile or -desktop or -tablet within the
             # name -- so the new file name is just the path to the directory for
             # optimized images + the file name without path
@@ -165,27 +165,32 @@ resize_images() {
             new_file_name="${DIR_OPTIMIZED_IMAGES}/${file_name_without_path}"
 
             case "${file_name_without_path}" in
-            *-mobile*)
+            *-mobile.*)
                 convert -geometry "${WIDTH_MOBILE}x" "${file}" \
                     "${new_file_name}"
 
                 new_file_list+=("${new_file_name}")
                 ;;
 
-            *-tablet*)
+            *-tablet.*)
                 convert -geometry "${WIDTH_TABLET}x" "${file}" \
                     "${new_file_name}"
                 new_file_list+=("${new_file_name}")
                 ;;
 
-            *-desktop*)
+            *-desktop.*)
                 convert -geometry "${WIDTH_DESKTOP}x" "${file}" \
                     "${new_file_name}"
                 new_file_list+=("${new_file_name}")
                 ;;
 
             *)
-                echo "${file} has not been detected to be for mobiles, tablets, or desktops"
+                new_file_list+=("${new_file_name}")
+                cp "${file}" "${new_file_name}"
+                echo "${file} has not been detected to be for mobiles, tablets, or desktops \
+and thus will not be resized. It will be optimized and converted to .webp though"
+
+                echo -e "\n"
                 ;;
             esac
         done
