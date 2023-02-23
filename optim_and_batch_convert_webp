@@ -21,7 +21,6 @@ OUTPUT_DIR='./webp_images'
 FILES_TO_CONVERT=(*)
 DIR_OPTIMIZED_IMAGES='./optimized_images'
 NO_STATS_IMAGEOPTIM=""
-RESIZE_IMAGES=false
 
 # Args below are for resizing images. We have four variables below,
 # with three width variables for tablets, mobiles and desktops,
@@ -53,7 +52,10 @@ Options:
                          defaults to 75
 
   -k string              Output directory for optimized images from imageoptim,
-                         defaults to ./optimized_images
+                         defaults to ./optimized_images. If resizing is set with 
+                         the -r option, then images will be resized and placed in the
+                         directory specified here, and then transformed into the .webp
+                         format
 
   -r                     If set, image resizing will be performed with a default width
                          for tablets of 1200 px, 615px for mobiles, and 1920px for
@@ -88,24 +90,31 @@ optim_and_batch_process_webp() {
     declare -a filtered_file_list
     filter_list_images filtered_file_list "$@"
 
-    optimize_files "${filtered_file_list[@]}"
+    if [[ ! -d "${DIR_OPTIMIZED_IMAGES}" ]]; then
+        mkdir "${DIR_OPTIMIZED_IMAGES}"
+    fi
 
-    for file in "${filtered_file_list[@]}"; do
+    declare -a files_to_convert_to_webp=("${filtered_file_list[@]}")
+    if "${RESIZE_IMAGES}"; then
+        declare -a resized_image_filelist
+        resize_images resized_image_filelist "${filtered_file_list[@]}"
+        # optimize_files
+        files_to_convert_to_webp=("${resized_image_filelist[@]}")
+    else
+        optimize_files "${filtered_file_list[@]}"
+    fi
+
+    for file in "${files_to_convert_to_webp[@]}"; do
+        echo "${file}"
         process_to_webp_logic "${file}"
     done
 }
 
 optimize_files() {
-    if [[ ! -d "${DIR_OPTIMIZED_IMAGES}" ]]; then
-        mkdir "${DIR_OPTIMIZED_IMAGES}"
-    fi
-
     # if you are resizing images, then you don't have to make explicit
     # copies of them before using imageoptim to compress them - as the
     # ImageMagick will deal with that by itself
-    if "${RESIZE_IMAGES}"; then
-        resize_images "$@"
-    else
+    if ! "${RESIZE_IMAGES}"; then
         for file in "$@"; do
             file_name_without_path="${file##*/}"
             cp "${file}" "${DIR_OPTIMIZED_IMAGES}/${file_name_without_path}"
@@ -117,16 +126,29 @@ optimize_files() {
 }
 
 resize_images() {
+    # going to have to have a name reference to store the list of new files
+    # that are going to be created
+    declare -n new_file_list=$1
+    new_file_list=()
+    shift 1
+
     # if you have a single image, then resizing will by default create three
     # images - one for tablets, one for mobiles, and one for desktops
     # with the appropriate resolutions.
     if (($# == 1)); then
+        file="$1"
         sizes=("${WIDTH_DESKTOP}" "${WIDTH_MOBILE}" "${WIDTH_TABLET}")
-        file="$@"
-        for size in "${sizes[@]}"; do
+        names=("-desktop" "-mobile" "-tablet")
+        for i in "${!sizes[@]}"; do
             file_name_without_path="${file##*/}"
-            convert -geometry "${size}x" "${file}" \
-                "${DIR_OPTIMIZED_IMAGES}/${file_name_without_path}"
+            base_file_name="${file_name_without_path%.*}"
+            extension="${file_name_without_path##*.}"
+
+            new_file_name="${DIR_OPTIMIZED_IMAGES}/${base_file_name}${names[i]}.${extension}"
+            convert -geometry "${sizes[i]}x" "${file}" \
+                "${new_file_name}"
+
+            new_file_list+=("${new_file_name}")
         done
 
     # if you have more then one image, then we will look for the file patterns
@@ -135,19 +157,30 @@ resize_images() {
     else
         for file in "$@"; do
             file_name_without_path="${file##*/}"
+            new_file_name="${DIR_OPTIMIZED_IMAGES}/${file_name_without_path}"
+
             case "${file_name_without_path}" in
             *-mobile*)
-                echo "img is for mobile, going to call convert -geometry ${WIDTH_MOBILE}x ${file} \ 
-                        ${DIR_OPTIMIZED_IMAGES}/${file_name_without_path}"
+                convert -geometry "${WIDTH_MOBILE}x" "${file}" \
+                    "${new_file_name}"
+
+                new_file_list+=("${new_file_name}")
                 ;;
+
             *-tablet*)
-                echo "img is for tablet, going to call convert -geometry ${WIDTH_TABLET}x ${file} \ 
-                        ${DIR_OPTIMIZED_IMAGES}/${file_name_without_path}"
+                convert -geometry "${WIDTH_TABLET}x" "${file}" \
+                    "${new_file_name}"
+                new_file_list+=("${new_file_name}")
                 ;;
 
             *-desktop*)
-                echo "img is for tablet, going to call convert -geometry ${WIDTH_DESKTOP}x ${file} \ 
-                        ${DIR_OPTIMIZED_IMAGES}/${file_name_without_path}"
+                convert -geometry "${WIDTH_DESKTOP}x" "${file}" \
+                    "${new_file_name}"
+                new_file_list+=("${new_file_name}")
+                ;;
+
+            *)
+                echo "${file} has not been detected to be for mobiles, tablets, or desktops"
                 ;;
             esac
         done
