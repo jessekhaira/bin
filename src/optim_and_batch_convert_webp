@@ -31,270 +31,275 @@ declare -i WIDTH_MOBILE=615
 declare -i WIDTH_DESKTOP=1920
 
 help() {
-    cat <<-END
-Usage: optim_and_batch_convert_webp [ -h ]
-                 [ -o string ] [ -q int ]
-                 [ -k string ] [ -S ]
-                 [ -r ] [ -t int ] 
-                 [-m int ] [-d int ]
-                 [patterns...] 
+	# shellformat off
+	cat <<-END
+		Usage: optim_and_batch_convert_webp [ -h ]
+						  [ -o string ] [ -q int ]
+						  [ -k string ] [ -S ]
+						  [ -r ] [ -t int ] 
+						  [-m int ] [-d int ]
+						  [patterns...] 
 
-Options:
-  -h                     Output usage information
+		Options:
 
-  -S                     For ImageOptim, if specified, no file size saving or loss info
-                         will be outputted
+		  -h                                Output usage information
 
-  -o string              Output directory for webp images, defaults
-                         to ./webp_images
+		  -S                                If set, no stats will be output by ImageOptim
 
-  -q int                 Quality to use when converting to webp
-                         defaults to 75
+		  -o string                         Output directory for webp images, defaults to ./webp_images
 
-  -k string              Output directory for optimized images from imageoptim,
-                         defaults to ./optimized_images. If resizing is set with 
-                         the -r option, then images will be resized and placed in the
-                         directory specified here, and then transformed into the .webp
-                         format
+		  -q int                            Quality to use when converting to webp, defaults to 75
 
-  -r                     If set, image resizing will be performed with a default width
-                         for tablets of 1200 px, 615px for mobiles, and 1920px for
-                         desktops. If a single image is passed as input to the command,
-                         with the -r option set, then three images will be produced as
-                         output for mobiles, tablets, and desktops. If more then one
-                         image is passed as input, then the filenames will be parsed
-                         accordingly to determine the images meant for various devices,
-                         as described below. 
+		  -k string                         Output directory for optimized images from imageoptim,
+		                                    defaults to ./optimized_images. If resizing is set with 
+		                                    the -r option, then images will be resized and placed in the
+		                                    directory specified here, and then transformed into the .webp
+		                                    format
 
-  -t int                 If resizing is set, this is the width that tablet images will be
-                         resized to in pixels. Defaults to 1200px. If more then one image is passed
-                         to the command, then the resizing will target images with a filename
-                         that include "-tablet" at the end of the name. If none are detected,
-                         then resizing will not occur. 
 
-  -m int                 If resizing is set, this is the width that mobile images will be
-                         resized to in pixels. Defaults to 615px. If more then one image is passed
-                         to the command, then the resizing will target images with a filename
-                         that include "-mobile" at the end of the name. If none are detected,
-                         then resizing will not occur. 
+		  -r                                If set, image resizing will be performed with a default width
+		                                    for tablets of 1200 px, 615px for mobiles, and 1920px for
+		                                    desktops. If a single image is passed as input to the command,
+		                                    with the -r option set, then three images will be produced as
+		                                    output for mobiles, tablets, and desktops. If more then one
+		                                    image is passed as input, then the filenames will be parsed
+		                                    accordingly to determine the images meant for various devices,
+		                                    as described below. 
 
-  -d int                 If resizing is set, this is the width that desktop images will be
-                         resized to in pixels. Defaults to 1920px. If more then one image is passed
-                         to the command, then the resizing will target images with a filename
-                         that include "-desktop" at the end of the name. If none are detected,
-                         then resizing will not occur. 
-END
+
+		  -t int                            If resizing is set, this is the width that tablet images will be
+		                                    resized to in pixels. Defaults to 1200px. If more then one image is passed
+		                                    to the command, then the resizing will target images with a filename
+		                                    that include "-tablet" at the end of the name. If none are detected,
+		                                    then resizing will not occur. 
+
+
+		  -m int                            If resizing is set, this is the width that mobile images will be
+		                                    resized to in pixels. Defaults to 615px. If more then one image is passed
+		                                    to the command, then the resizing will target images with a filename
+		                                    that include "-mobile" at the end of the name. If none are detected,
+		                                    then resizing will not occur. 
+
+
+		  -d int                            If resizing is set, this is the width that desktop images will be
+		                                    resized to in pixels. Defaults to 1920px. If more then one image is passed
+		                                    to the command, then the resizing will target images with a filename
+		                                    that include "-desktop" at the end of the name. If none are detected,
+		                                    then resizing will not occur. 
+
+	END
+	#shellformat on
 }
 
 optim_and_batch_process_webp() {
-    declare -a filtered_file_list
-    filter_list_images filtered_file_list "$@"
+	declare -a filtered_file_list
+	filter_list_images filtered_file_list "$@"
 
-    if [[ ! -d "${DIR_OPTIMIZED_IMAGES}" ]]; then
-        mkdir "${DIR_OPTIMIZED_IMAGES}"
-    fi
+	if [[ ! -d "${DIR_OPTIMIZED_IMAGES}" ]]; then
+		mkdir "${DIR_OPTIMIZED_IMAGES}"
+	fi
 
-    declare -a files_to_convert_to_webp=("${filtered_file_list[@]}")
-    if "${RESIZE_IMAGES}"; then
-        declare -a resized_image_filelist
-        resize_images resized_image_filelist "${filtered_file_list[@]}"
-        # optimize_files
-        files_to_convert_to_webp=("${resized_image_filelist[@]}")
-    else
-        optimize_files "${filtered_file_list[@]}"
-    fi
+	declare -a files_to_convert_to_webp=("${filtered_file_list[@]}")
+	if "${RESIZE_IMAGES}"; then
+		declare -a resized_image_filelist
+		resize_images resized_image_filelist "${filtered_file_list[@]}"
+		# optimize_files
+		files_to_convert_to_webp=("${resized_image_filelist[@]}")
+	else
+		optimize_files "${filtered_file_list[@]}"
+	fi
 
-    for file in "${files_to_convert_to_webp[@]}"; do
-        echo "${file}"
-        process_to_webp_logic "${file}"
-    done
+	for file in "${files_to_convert_to_webp[@]}"; do
+		echo "${file}"
+		process_to_webp_logic "${file}"
+	done
 }
 
 optimize_files() {
-    # if you are resizing images, then you don't have to make explicit
-    # copies of them before using imageoptim to compress them - as the
-    # ImageMagick will deal with that by itself
-    if ! "${RESIZE_IMAGES}"; then
-        for file in "$@"; do
-            file_name_without_path="${file##*/}"
-            cp "${file}" "${DIR_OPTIMIZED_IMAGES}/${file_name_without_path}"
-        done
-    fi
+	# if you are resizing images, then you don't have to make explicit
+	# copies of them before using imageoptim to compress them - as the
+	# ImageMagick will deal with that by itself
+	if ! "${RESIZE_IMAGES}"; then
+		for file in "$@"; do
+			file_name_without_path="${file##*/}"
+			cp "${file}" "${DIR_OPTIMIZED_IMAGES}/${file_name_without_path}"
+		done
+	fi
 
-    # run imageoptim at once over every image in the optimized_images directory
-    imageoptim "${NO_STATS_IMAGEOPTIM}" "${DIR_OPTIMIZED_IMAGES}/*"
+	# run imageoptim at once over every image in the optimized_images directory
+	imageoptim "${NO_STATS_IMAGEOPTIM}" "${DIR_OPTIMIZED_IMAGES}/*"
 }
 
 resize_images() {
-    # going to have to have a name reference to store the list of new files
-    # that are going to be created
-    declare -n new_file_list=$1
-    new_file_list=()
-    shift 1
+	# going to have to have a name reference to store the list of new files
+	# that are going to be created
+	declare -n new_file_list=$1
+	new_file_list=()
+	shift 1
 
-    # if you have a single image, then resizing will by default create three
-    # images - one for tablets, one for mobiles, and one for desktops
-    # with the appropriate resolutions.
-    if (($# == 1)); then
-        file="$1"
-        sizes=("${WIDTH_DESKTOP}" "${WIDTH_MOBILE}" "${WIDTH_TABLET}")
-        names=("-desktop" "-mobile" "-tablet")
-        for i in "${!sizes[@]}"; do
-            file_name_without_path="${file##*/}"
-            base_file_name="${file_name_without_path%.*}"
-            extension="${file_name_without_path##*.}"
+	# if you have a single image, then resizing will by default create three
+	# images - one for tablets, one for mobiles, and one for desktops
+	# with the appropriate resolutions.
+	if (($# == 1)); then
+		file="$1"
+		sizes=("${WIDTH_DESKTOP}" "${WIDTH_MOBILE}" "${WIDTH_TABLET}")
+		names=("-desktop" "-mobile" "-tablet")
+		for i in "${!sizes[@]}"; do
+			file_name_without_path="${file##*/}"
+			base_file_name="${file_name_without_path%.*}"
+			extension="${file_name_without_path##*.}"
 
-            new_file_name="${DIR_OPTIMIZED_IMAGES}/${base_file_name}${names[i]}.${extension}"
-            convert -geometry "${sizes[i]}x" "${file}" \
-                "${new_file_name}"
+			new_file_name="${DIR_OPTIMIZED_IMAGES}/${base_file_name}${names[i]}.${extension}"
+			convert -geometry "${sizes[i]}x" "${file}" \
+				"${new_file_name}"
 
-            new_file_list+=("${new_file_name}")
-        done
+			new_file_list+=("${new_file_name}")
+		done
 
-    # if you have more then one image, then we will look for the file patterns
-    # -mobile, -desktop, -tablet to determine how to resize the images
-    # appropriately
-    else
-        for file in "$@"; do
+	# if you have more then one image, then we will look for the file patterns
+	# -mobile, -desktop, -tablet to determine how to resize the images
+	# appropriately
+	else
+		for file in "$@"; do
 
-            # if the file name has -mobile, or tablet, or desktop somewhere within
-            # it, we will not need to add -mobile or -desktop or -tablet within the
-            # name -- so the new file name is just the path to the directory for
-            # optimized images + the file name without path
-            file_name_without_path="${file##*/}"
-            new_file_name="${DIR_OPTIMIZED_IMAGES}/${file_name_without_path}"
+			# if the file name has -mobile, or tablet, or desktop somewhere within
+			# it, we will not need to add -mobile or -desktop or -tablet within the
+			# name -- so the new file name is just the path to the directory for
+			# optimized images + the file name without path
+			file_name_without_path="${file##*/}"
+			new_file_name="${DIR_OPTIMIZED_IMAGES}/${file_name_without_path}"
 
-            case "${file_name_without_path}" in
-            *-mobile.*)
-                convert -geometry "${WIDTH_MOBILE}x" "${file}" \
-                    "${new_file_name}"
+			case "${file_name_without_path}" in
+			*-mobile.*)
+				convert -geometry "${WIDTH_MOBILE}x" "${file}" \
+					"${new_file_name}"
 
-                new_file_list+=("${new_file_name}")
-                ;;
+				new_file_list+=("${new_file_name}")
+				;;
 
-            *-tablet.*)
-                convert -geometry "${WIDTH_TABLET}x" "${file}" \
-                    "${new_file_name}"
-                new_file_list+=("${new_file_name}")
-                ;;
+			*-tablet.*)
+				convert -geometry "${WIDTH_TABLET}x" "${file}" \
+					"${new_file_name}"
+				new_file_list+=("${new_file_name}")
+				;;
 
-            *-desktop.*)
-                convert -geometry "${WIDTH_DESKTOP}x" "${file}" \
-                    "${new_file_name}"
-                new_file_list+=("${new_file_name}")
-                ;;
+			*-desktop.*)
+				convert -geometry "${WIDTH_DESKTOP}x" "${file}" \
+					"${new_file_name}"
+				new_file_list+=("${new_file_name}")
+				;;
 
-            *)
-                new_file_list+=("${new_file_name}")
-                cp "${file}" "${new_file_name}"
-                echo "${file} has not been detected to be for mobiles, tablets, or desktops \
+			*)
+				new_file_list+=("${new_file_name}")
+				cp "${file}" "${new_file_name}"
+				echo "${file} has not been detected to be for mobiles, tablets, or desktops \
 and thus will not be resized. It will be optimized and converted to .webp though"
 
-                echo -e "\n"
-                ;;
-            esac
-        done
-    fi
+				echo -e "\n"
+				;;
+			esac
+		done
+	fi
 }
 
 filter_list_images() {
-    declare -n output="$1"
-    output=()
-    for file in "$@"; do
-        if [[ "${file}" =~ \.(jpeg|jpg|png|webp|tiff|tif)$ ]]; then
-            output+=("${file}")
-        fi
-    done
+	declare -n output="$1"
+	output=()
+	for file in "$@"; do
+		if [[ "${file}" =~ \.(jpeg|jpg|png|webp|tiff|tif)$ ]]; then
+			output+=("${file}")
+		fi
+	done
 }
 
 process_to_webp_logic() {
-    if [[ ! -d "${OUTPUT_DIR}" ]]; then
-        mkdir "${OUTPUT_DIR}"
-    fi
+	if [[ ! -d "${OUTPUT_DIR}" ]]; then
+		mkdir "${OUTPUT_DIR}"
+	fi
 
-    file="$1"
-    file_name_without_path="${file##*/}"
-    optimized_file_location="${DIR_OPTIMIZED_IMAGES}/${file_name_without_path}"
-    base_file_name="${file_name_without_path%.*}"
-    cwebp -q "${QUALITY}" \
-        "${optimized_file_location}" -o "${OUTPUT_DIR}/${base_file_name}.webp"
-    echo -e "\n\n"
+	file="$1"
+	file_name_without_path="${file##*/}"
+	optimized_file_location="${DIR_OPTIMIZED_IMAGES}/${file_name_without_path}"
+	base_file_name="${file_name_without_path%.*}"
+	cwebp -q "${QUALITY}" \
+		"${optimized_file_location}" -o "${OUTPUT_DIR}/${base_file_name}.webp"
+	echo -e "\n\n"
 }
 
 if [[ $1 == "help" ]]; then
-    help
-    exit 1
+	help
+	exit 1
 fi
 
 while getopts ":hSo:q:k:rt:m:d:" optarg "$@"; do
-    case $optarg in
-    :) ## will run when no args provied for o and q options
-        echo "Option -$OPTARG requires an argument." >&2
-        exit 1
-        ;;
+	case $optarg in
+	:) ## will run when no args provied for o and q options
+		echo "Option -$OPTARG requires an argument." >&2
+		exit 1
+		;;
 
-    \?)
-        echo "Invalid option: -$OPTARG" >&2
-        exit 1
-        ;;
+	\?)
+		echo "Invalid option: -$OPTARG" >&2
+		exit 1
+		;;
 
-    h)
-        help
-        exit 0
-        ;;
+	h)
+		help
+		exit 0
+		;;
 
-    m)
-        if eval verify_size "${OPTARG}" 0 2200; then
-            WIDTH_MOBILE=$OPTARG
-        else
-            echo "Mobile size must be an integer between 0 and 2200px"
-            exit 1
-        fi
-        ;;
+	m)
+		if eval verify_size "${OPTARG}" 0 2200; then
+			WIDTH_MOBILE=$OPTARG
+		else
+			echo "Mobile size must be an integer between 0 and 2200px"
+			exit 1
+		fi
+		;;
 
-    t)
-        if eval verify_size "${OPTARG}" 0 2200; then
-            WIDTH_TABLET=$OPTARG
-        else
-            echo "Tablet size must be an integer between 0 and 2200px"
-            exit 1
-        fi
-        ;;
+	t)
+		if eval verify_size "${OPTARG}" 0 2200; then
+			WIDTH_TABLET=$OPTARG
+		else
+			echo "Tablet size must be an integer between 0 and 2200px"
+			exit 1
+		fi
+		;;
 
-    d)
-        if eval verify_size "${OPTARG}" 0 2200; then
-            WIDTH_DESKTOP=$OPTARG
-        else
-            echo "Desktop size must be an integer between 0 and 2200px"
-            exit 1
-        fi
-        ;;
+	d)
+		if eval verify_size "${OPTARG}" 0 2200; then
+			WIDTH_DESKTOP=$OPTARG
+		else
+			echo "Desktop size must be an integer between 0 and 2200px"
+			exit 1
+		fi
+		;;
 
-    r)
-        RESIZE_IMAGES=true
-        ;;
+	r)
+		RESIZE_IMAGES=true
+		;;
 
-    o)
-        OUTPUT_DIR=$OPTARG
-        ;;
+	o)
+		OUTPUT_DIR=$OPTARG
+		;;
 
-    k)
-        DIR_OPTIMIZED_IMAGES=$OPTARG
-        ;;
+	k)
+		DIR_OPTIMIZED_IMAGES=$OPTARG
+		;;
 
-    S)
-        NO_STATS_IMAGEOPTIM="-S"
-        ;;
+	S)
+		NO_STATS_IMAGEOPTIM="-S"
+		;;
 
-    q)
-        if eval verify_size "${OPTARG}" 0 100; then
-            QUALITY=$OPTARG
-        else
-            echo "Quality must be an integer between 0 and 100"
-            exit 1
-        fi
-        ;;
-    esac
+	q)
+		if eval verify_size "${OPTARG}" 0 100; then
+			QUALITY=$OPTARG
+		else
+			echo "Quality must be an integer between 0 and 100"
+			exit 1
+		fi
+		;;
+	esac
 done
 
 shift $((OPTIND - 1))
@@ -303,7 +308,7 @@ resizing: ${RESIZE_IMAGES}, tablet width: ${WIDTH_TABLET}px, \
 mobile width: ${WIDTH_MOBILE}px, desktop width: ${WIDTH_DESKTOP}px"
 
 if (($# == 0)); then
-    optim_and_batch_process_webp "${FILES_TO_CONVERT[@]}"
+	optim_and_batch_process_webp "${FILES_TO_CONVERT[@]}"
 else
-    optim_and_batch_process_webp "$@"
+	optim_and_batch_process_webp "$@"
 fi
