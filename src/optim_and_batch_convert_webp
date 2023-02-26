@@ -303,7 +303,7 @@ while getopts ":hSo:q:k:rt:m:d:" optarg "$@"; do
 done
 
 shift $((OPTIND - 1))
-echo "quality: $QUALITY, output_webp: $OUTPUT_DIR, output_optim: ${DIR_OPTIMIZED_IMAGES}, \
+echo "quality: ${QUALITY}, output_webp: ${OUTPUT_DIR}, output_optim: ${DIR_OPTIMIZED_IMAGES}, \
 resizing: ${RESIZE_IMAGES}, tablet width: ${WIDTH_TABLET}px, \
 mobile width: ${WIDTH_MOBILE}px, desktop width: ${WIDTH_DESKTOP}px"
 
