@@ -9,7 +9,6 @@
         "pathBash": "/usr/local/bin/bash",
         "terminalKind": "debugConsole",
         "trace": true,
-        "args": ["-q60", "-r", "-t1900", "-d2200", "-m350", "./best_output_dir/*"]
     }
     ]
 }
