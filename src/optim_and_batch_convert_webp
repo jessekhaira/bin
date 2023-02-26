@@ -110,7 +110,6 @@ optim_and_batch_process_webp() {
 	fi
 
 	for file in "${files_to_convert_to_webp[@]}"; do
-		echo "${file}"
 		process_to_webp_logic "${file}"
 	done
 }
