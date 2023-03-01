@@ -26,3 +26,9 @@ setup() {
     assert_output -p "Quality must be an integer between 0 and 100"
     assert_failure
 }
+
+@test "test5 to test boundaries for quality" {
+    run optim_and_batch_convert_webp -q 0.1
+    assert_output -p "Quality must be an integer between 0 and 100"
+    assert_failure
+}
