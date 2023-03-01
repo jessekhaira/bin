@@ -1,0 +1,10 @@
+setup() {
+    load 'test_helper/bats-support/load'
+    load 'test_helper/bats-assert/load'
+}
+
+@test "test1 to test boundaries for quality" {
+    run optim_and_batch_convert_webp -q 1000
+    assert_output -p "Quality must be an integer between 0 and 100"
+    assert_failure
+}
