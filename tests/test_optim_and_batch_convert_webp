@@ -3,32 +3,39 @@ setup() {
     _common_setup
 }
 
-@test "test1 to test boundaries for quality" {
+@test "testing upper boundaries for quality" {
     run optim_and_batch_convert_webp -q 1000
     assert_output -p "Quality must be an integer between 0 and 100"
     assert_failure
-}
 
-@test "test2 to test boundaries for quality" {
     run optim_and_batch_convert_webp -q 101
     assert_output -p "Quality must be an integer between 0 and 100"
     assert_failure
-}
 
-@test "test3 to test boundaries for quality" {
     run optim_and_batch_convert_webp -q 100000
     assert_output -p "Quality must be an integer between 0 and 100"
     assert_failure
-}
 
-@test "test4 to test boundaries for quality" {
     run optim_and_batch_convert_webp -q 100.5
     assert_output -p "Quality must be an integer between 0 and 100"
     assert_failure
 }
 
-@test "test5 to test boundaries for quality" {
+@test "testing lower boundaries for quality" {
     run optim_and_batch_convert_webp -q 0.1
     assert_output -p "Quality must be an integer between 0 and 100"
     assert_failure
+
+    run optim_and_batch_convert_webp -q -10
+    assert_output -p "Quality must be an integer between 0 and 100"
+    assert_failure
+
+    run optim_and_batch_convert_webp -q -1
+    assert_output -p "Quality must be an integer between 0 and 100"
+    assert_failure
+
+    run optim_and_batch_convert_webp -q -1000
+    assert_output -p "Quality must be an integer between 0 and 100"
+    assert_failure
 }
+
