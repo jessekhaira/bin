@@ -222,7 +222,7 @@ process_to_webp_logic() {
 	base_file_name="${file_name_without_path%.*}"
 	cwebp -q "${QUALITY}" \
 		"${optimized_file_location}" -o "${OUTPUT_DIR}/${base_file_name}.webp"
-	echo -e "\n\n"
+	echo -e "\n"
 }
 
 if [[ $1 == "help" ]]; then

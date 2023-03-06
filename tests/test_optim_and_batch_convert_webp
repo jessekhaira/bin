@@ -1,8 +1,19 @@
 setup() {
     load 'test_helper/common-setup'
     _common_setup
+
+    mock_command cwebp
+    mock_command cp
+    mock_command imageoptim
+    mock_command convert
 }
 
+teardown() {
+  unmock_command cwebp
+
+}
+
+# bats test_tags=quality
 @test "testing upper boundaries for quality" {
     run optim_and_batch_convert_webp -q 1000
     assert_output -p "Quality must be an integer between 0 and 100"
@@ -21,6 +32,7 @@ setup() {
     assert_failure
 }
 
+# bats test_tags=quality
 @test "testing lower boundaries for quality" {
     run optim_and_batch_convert_webp -q 0.1
     assert_output -p "Quality must be an integer between 0 and 100"
@@ -38,4 +50,5 @@ setup() {
     assert_output -p "Quality must be an integer between 0 and 100"
     assert_failure
 }
+
 
