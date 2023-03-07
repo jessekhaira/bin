@@ -20,7 +20,6 @@ unmock_commands() {
     for command in "$@"; do
         local path_to_mocked_command="$BATS_TMPDIR/${command}"
         if [[ -e "${path_to_mocked_command}" ]]; then
-            echo "${command} found at ${path_to_mocked_command}" >&3
             unlink "${path_to_mocked_command}"
             #remove the string added to PATH variable
             PATH="${PATH/${path_to_mocked_command}:/}"
