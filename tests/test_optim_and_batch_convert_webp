@@ -6,6 +6,7 @@ teardown() {
     unmock_commands cwebp cp imageoptim convert
 }
 
+# bats test_tags=failure
 @test "testing upper boundaries for quality failure" {
     run optim_and_batch_convert_webp -q 1000
     assert_output -p "Quality must be an integer between 0 and 100"
@@ -24,6 +25,7 @@ teardown() {
     assert_failure
 }
 
+# bats test_tags=failure
 @test "testing lower boundaries for quality failure" {
     run optim_and_batch_convert_webp -q 0.1
     assert_output -p "Quality must be an integer between 0 and 100"
@@ -42,7 +44,8 @@ teardown() {
     assert_failure
 }
 
-@test "testing setting size for mobile images" {
+# bats test_tags=failure
+@test "testing setting size for mobile images failure" {
     run optim_and_batch_convert_webp -m 2300
     assert_output -p "Mobile size must be an integer between 0 and 2200px"
     assert_failure
@@ -64,7 +67,8 @@ teardown() {
     assert_failure
 }
 
-@test "testing setting size for tablet images" {
+# bats test_tags=failure
+@test "testing setting size for tablet images failure" {
     run optim_and_batch_convert_webp -t 2300
     assert_output -p "Tablet size must be an integer between 0 and 2200px"
     assert_failure
@@ -86,7 +90,8 @@ teardown() {
     assert_failure
 }
 
-@test "testing setting size for desktop images" {
+# bats test_tags=failure
+@test "testing setting size for desktop images failure" {
     run optim_and_batch_convert_webp -d 2301
     assert_output -p "Desktop size must be an integer between 0 and 2200px"
     assert_failure
@@ -107,4 +112,3 @@ teardown() {
     assert_output -p "Desktop size must be an integer between 0 and 2200px"
     assert_failure
 }
-
