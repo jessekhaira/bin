@@ -7,25 +7,23 @@ _common_setup() {
 }
 
 mock_commands() {
-    # assume you want to mock every command passed as input
     declare -n map="$1"
     shift
     for command in "$@"; do
-        local mock="$(mock_create)"
-        local path_mocked_command="$BATS_TMPDIR/${command}"
+        declare mock="$(mock_create)"
+        declare path_mocked_command="$BATS_TMPDIR/${command}"
         ln -sf "${mock}" "${path_mocked_command}"
-        PATH="${path_mocked_command}:${PATH}"
         map["${command}"]="${mock}"
     done
+    PATH="${mock%/*}:${PATH}"
 }
 
 unmock_commands() {
     for command in "$@"; do
-        local path_to_mocked_command="$BATS_TMPDIR/${command}"
+        declare path_to_mocked_command="$BATS_TMPDIR/${command}"
         if [[ -e "${path_to_mocked_command}" ]]; then
             unlink "${path_to_mocked_command}"
-            #remove the string added to PATH variable
-            PATH="${PATH/${path_to_mocked_command}:/}"
         fi
     done
+    PATH="${PATH/$BATS_TMPDIR:/}"
 }

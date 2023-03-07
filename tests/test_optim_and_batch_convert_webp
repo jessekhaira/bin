@@ -8,7 +8,7 @@ teardown() {
 
 @test "testing upper boundaries for quality" {
     declare -A mapping
-    mock_commands mapping cwebp cp imageoptim convert
+    mock_commands mapping cwebp cp imageoptim convert mkdir
 
     run optim_and_batch_convert_webp -q 1000
     assert_output -p "Quality must be an integer between 0 and 100"
@@ -26,6 +26,9 @@ teardown() {
     assert_output -p "Quality must be an integer between 0 and 100"
     assert_failure
 
+    run optim_and_batch_convert_webp -q 100 file1.jpeg
+    [[ "$(mock_get_call_num ${mapping[mkdir]})" -eq 2 ]]
+    assert_success
 }
 
 @test "testing lower boundaries for quality" {
@@ -111,3 +114,4 @@ teardown() {
     assert_output -p "Desktop size must be an integer between 0 and 2200px"
     assert_failure
 }
+
