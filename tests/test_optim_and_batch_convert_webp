@@ -1,16 +1,16 @@
-setup() {
-    load 'test_helper/common-setup'
-    _common_setup
+# the only thing that will ever be mutating this associative
+# array is the setup function -- updating the mock paths
+# for the mocked commands, which teardown() will access
+# after a given test has run
+load 'test_helper/common-setup'
+_common_setup
 
-    mock_command cwebp
-    mock_command cp
-    mock_command imageoptim
-    mock_command convert
+setup() {
+    mock_commands cwebp cp imageoptim convert
 }
 
 teardown() {
-  unmock_command cwebp
-
+  unmock_commands cwebp cp imageoptim convert
 }
 
 # bats test_tags=quality

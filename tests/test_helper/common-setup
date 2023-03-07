@@ -6,22 +6,24 @@ _common_setup() {
     load 'test_helper/bats-mock/src/bats-mock.bash'
 }
 
-mock_command() {
-    mocked_command="$1"
-    mock="$(mock_create)"
-    mock_path="${mock%/*}"
-    ln -sf "${mock}" "${mock_path}/${mocked_command}"
-    PATH="${mock_path}/${mocked_command}:${PATH}"
+mock_commands() {
+    # assume you want to mock every command passed as input
+    for command in "$@"; do
+        local mock="$(mock_create)"
+        local path_mocked_command="$BATS_TMPDIR/${command}"
+        ln -sf "${mock}" "${path_mocked_command}"
+        PATH="${path_mocked_command}:${PATH}"
+    done
 }
 
-unmock_command() {
-    mock_path="${mock%/*}"
-    mocked_command="$1"
-    path_to_mocked_command="${mock_path}/${mocked_command}"
-    if [[ -e "${path_to_mocked_command}" ]]; then
-        unlink "${path_to_mocked_command}"
-        #remove the prefix string added to PATH variable
-        PATH="${PATH/path_to_mocked_command/}"
-        echo "${PATH}"
-    fi
+unmock_commands() {
+    for command in "$@"; do
+        local path_to_mocked_command="$BATS_TMPDIR/${command}"
+        if [[ -e "${path_to_mocked_command}" ]]; then
+            echo "${command} found at ${path_to_mocked_command}" >&3
+            unlink "${path_to_mocked_command}"
+            #remove the string added to PATH variable
+            PATH="${PATH/${path_to_mocked_command}:/}"
+        fi
+    done
 }
