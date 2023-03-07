@@ -8,11 +8,14 @@ _common_setup() {
 
 mock_commands() {
     # assume you want to mock every command passed as input
+    declare -n map="$1"
+    shift
     for command in "$@"; do
         local mock="$(mock_create)"
         local path_mocked_command="$BATS_TMPDIR/${command}"
         ln -sf "${mock}" "${path_mocked_command}"
         PATH="${path_mocked_command}:${PATH}"
+        map["${command}"]="${mock}"
     done
 }
 

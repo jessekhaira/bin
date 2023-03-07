@@ -1,15 +1,15 @@
 load 'test_helper/common-setup'
 _common_setup
 
-setup() {
-    mock_commands cwebp cp imageoptim convert
-}
 
 teardown() {
     unmock_commands cwebp cp imageoptim convert
 }
 
 @test "testing upper boundaries for quality" {
+    declare -A mapping
+    mock_commands mapping cwebp cp imageoptim convert
+
     run optim_and_batch_convert_webp -q 1000
     assert_output -p "Quality must be an integer between 0 and 100"
     assert_failure
@@ -25,6 +25,7 @@ teardown() {
     run optim_and_batch_convert_webp -q 100.5
     assert_output -p "Quality must be an integer between 0 and 100"
     assert_failure
+
 }
 
 @test "testing lower boundaries for quality" {
