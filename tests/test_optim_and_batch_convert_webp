@@ -45,8 +45,46 @@ teardown() {
     assert_failure
 }
 
-@test "testing setting size for mobile, tablet, and desktop images" {
+@test "testing setting size for mobile images" {
     run optim_and_batch_convert_webp -m 2300
     assert_output -p "Mobile size must be an integer between 0 and 2200px"
+    assert_failure
+  
+    run optim_and_batch_convert_webp -m -10
+    assert_output -p "Mobile size must be an integer between 0 and 2200px"
+    assert_failure
+
+    run optim_and_batch_convert_webp -m 123.97
+    assert_output -p "Mobile size must be an integer between 0 and 2200px"
+    assert_failure
+
+    run optim_and_batch_convert_webp -m 2201
+    assert_output -p "Mobile size must be an integer between 0 and 2200px"
+    assert_failure
+  
+    run optim_and_batch_convert_webp -m -1
+    assert_output -p "Mobile size must be an integer between 0 and 2200px"
+    assert_failure
+}
+
+@test "testing setting size for tablet images" {
+    run optim_and_batch_convert_webp -t 2300
+    assert_output -p "Tablet size must be an integer between 0 and 2200px"
+    assert_failure
+  
+    run optim_and_batch_convert_webp -t -1000
+    assert_output -p "Tablet size must be an integer between 0 and 2200px"
+    assert_failure
+
+    run optim_and_batch_convert_webp -t 123.97
+    assert_output -p "Tablet size must be an integer between 0 and 2200px"
+    assert_failure
+
+    run optim_and_batch_convert_webp -t 2201
+    assert_output -p "Tablet size must be an integer between 0 and 2200px"
+    assert_failure
+  
+    run optim_and_batch_convert_webp -t -1
+    assert_output -p "Tablet size must be an integer between 0 and 2200px"
     assert_failure
 }
