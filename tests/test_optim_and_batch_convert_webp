@@ -88,3 +88,25 @@ teardown() {
     assert_output -p "Tablet size must be an integer between 0 and 2200px"
     assert_failure
 }
+
+@test "testing setting size for desktop images" {
+    run optim_and_batch_convert_webp -d 2301
+    assert_output -p "Desktop size must be an integer between 0 and 2200px"
+    assert_failure
+  
+    run optim_and_batch_convert_webp -d -0.0001
+    assert_output -p "Desktop size must be an integer between 0 and 2200px"
+    assert_failure
+
+    run optim_and_batch_convert_webp -d 942.123
+    assert_output -p "Desktop size must be an integer between 0 and 2200px"
+    assert_failure
+
+    run optim_and_batch_convert_webp -d 2201
+    assert_output -p "Desktop size must be an integer between 0 and 2200px"
+    assert_failure
+  
+    run optim_and_batch_convert_webp -d -1
+    assert_output -p "Desktop size must be an integer between 0 and 2200px"
+    assert_failure
+}
