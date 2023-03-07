@@ -232,7 +232,7 @@ fi
 
 while getopts ":hSo:q:k:rt:m:d:" optarg "$@"; do
 	case $optarg in
-	:) ## will run when no args provied for o and q options
+	:)
 		echo "Option -$OPTARG requires an argument." >&2
 		exit 1
 		;;
