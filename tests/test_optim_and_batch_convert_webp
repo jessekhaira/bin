@@ -1,11 +1,6 @@
 load 'test_helper/common-setup'
 _common_setup
 
-
-teardown() {
-    unmock_commands cwebp cp imageoptim convert
-}
-
 # bats test_tags=failure
 @test "testing upper boundaries for quality failure" {
     run optim_and_batch_convert_webp -q 1000
@@ -111,4 +106,17 @@ teardown() {
     run optim_and_batch_convert_webp -d -1
     assert_output -p "Desktop size must be an integer between 0 and 2200px"
     assert_failure
+}
+
+# bats test_tags=success
+@test 'testing success case 1 -- with all variables set' {
+    declare -A mapping
+    mock_commands mapping cwebp mkdir imageoptim convert cp
+
+    run optim_and_batch_convert_webp file1.jpeg
+    assert_success
+    assert_equal "$(mock_get_call_num ${mapping[mkdir]})"  2
+    assert_equal "$(mock_get_call_num ${mapping[cwebp]})"  1
+
+    unmock_commands cwebp cp imageoptim convert
 }
