@@ -243,3 +243,4 @@ WIDTH_DESKTOP=1920
 
     unmock_commands cwebp cp imageoptim convert
 }
+
