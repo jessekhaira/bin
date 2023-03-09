@@ -238,6 +238,7 @@ WIDTH_DESKTOP=1920
     assert_equal "$(mock_get_call_args "${mapping[cwebp]}" 3)" \
 		"-q 75 some_opt_dir/file1-tablet.jpeg -o some_output_dir/file1-tablet.webp"
 
+    # no copying should happen, we are doing resizing
     assert_equal "$(mock_get_call_num "${mapping[cp]}")" 0
 
     unmock_commands cwebp cp imageoptim convert
