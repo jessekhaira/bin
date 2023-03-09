@@ -115,8 +115,11 @@ _common_setup
 
     run optim_and_batch_convert_webp file1.jpeg
     assert_success
-    assert_equal "$(mock_get_call_num ${mapping[mkdir]})"  2
-    assert_equal "$(mock_get_call_num ${mapping[cwebp]})"  1
+    assert_equal "$(mock_get_call_num "${mapping[mkdir]}")"  2
+    assert_equal "$(mock_get_call_num "${mapping[cwebp]}")"  1
+    assert_equal "$(mock_get_call_args "${mapping[cwebp]}")" \
+        "-q 75 ./optimized_images/file1.jpeg -o ./webp_images/file1.webp"
+        
 
     unmock_commands cwebp cp imageoptim convert
 }
