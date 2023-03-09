@@ -113,13 +113,20 @@ _common_setup
     declare -A mapping
     mock_commands mapping cwebp mkdir imageoptim convert cp
 
+    # assuming not wanting to perform image resizing - just 
+    # optimization + converting to .webp format with quality 75
     run optim_and_batch_convert_webp file1.jpeg
     assert_success
     assert_equal "$(mock_get_call_num "${mapping[mkdir]}")"  2
     assert_equal "$(mock_get_call_num "${mapping[cwebp]}")"  1
     assert_equal "$(mock_get_call_args "${mapping[cwebp]}")" \
         "-q 75 ./optimized_images/file1.jpeg -o ./webp_images/file1.webp"
-        
+    assert_equal "$(mock_get_call_num "${mapping[convert]}")"  0
+    assert_equal "$(mock_get_call_num "${mapping[imageoptim]}")"  1
+    assert_equal "$(mock_get_call_args "${mapping[imageoptim]}")" \
+        " ./optimized_images/*"
+
+
 
     unmock_commands cwebp cp imageoptim convert
 }
