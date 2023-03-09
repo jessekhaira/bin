@@ -189,7 +189,14 @@ WIDTH_DESKTOP=1920
 		"-q 75 some_opt_dir/some png file.png -o some_output_dir/some png file.webp"
 
     assert_equal "$(mock_get_call_num "${mapping[cp]}")" 8
+    assert_equal "$(mock_get_call_args "${mapping[cp]}" 1)" \
+		"file1.jpeg some_opt_dir/file1.jpeg"
 
+    assert_equal "$(mock_get_call_args "${mapping[cp]}" 2)" \
+		"file2.jpeg some_opt_dir/file2.jpeg"
+    assert_equal "$(mock_get_call_args "${mapping[cp]}" 3)" \
+		"file3.png some_opt_dir/file3.png"
+        
     assert_equal "$(mock_get_call_num "${mapping[convert]}")"  0
 
     unmock_commands cwebp cp imageoptim convert
