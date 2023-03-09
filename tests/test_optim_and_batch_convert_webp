@@ -109,24 +109,38 @@ _common_setup
 }
 
 # bats test_tags=success
-@test 'testing success case 1 -- with all variables set' {
+@test "testing success case 1 -- no image resizing, or art direction" {
     declare -A mapping
     mock_commands mapping cwebp mkdir imageoptim convert cp
 
-    # assuming not wanting to perform image resizing - just 
-    # optimization + converting to .webp format with quality 75
     run optim_and_batch_convert_webp file1.jpeg
     assert_success
     assert_equal "$(mock_get_call_num "${mapping[mkdir]}")"  2
+    assert_equal "$(mock_get_call_num "${mapping[imageoptim]}")"  1
+    assert_equal "$(mock_get_call_args "${mapping[imageoptim]}")" \
+        " ./optimized_images/*"
     assert_equal "$(mock_get_call_num "${mapping[cwebp]}")"  1
     assert_equal "$(mock_get_call_args "${mapping[cwebp]}")" \
         "-q 75 ./optimized_images/file1.jpeg -o ./webp_images/file1.webp"
     assert_equal "$(mock_get_call_num "${mapping[convert]}")"  0
+
+    unmock_commands cwebp cp imageoptim convert
+}
+
+# bats test_tags=success
+@test "testing success case 2 -- no image resizing, or art direction" {
+    declare -A mapping
+    mock_commands mapping cwebp mkdir imageoptim convert cp
+
+    # should glob and expand to all files in the current directory 
+    # when run with no arguments 
+    run optim_and_batch_convert_webp 
+    assert_success
+    assert_equal "$(mock_get_call_num "${mapping[mkdir]}")"  1
     assert_equal "$(mock_get_call_num "${mapping[imageoptim]}")"  1
     assert_equal "$(mock_get_call_args "${mapping[imageoptim]}")" \
         " ./optimized_images/*"
-
-
-
-    unmock_commands cwebp cp imageoptim convert
+    assert_equal "$(mock_get_call_num "${mapping[cwebp]}")"  0
+    assert_equal "$(mock_get_call_num "${mapping[cp]}")"  0
+    assert_equal "$(mock_get_call_num "${mapping[convert]}")"  0
 }
