@@ -1,6 +1,12 @@
 load 'test_helper/common-setup'
 _common_setup
 
+mock_list_files=(file1.jpeg file2.jpeg random_file \
+    file.html file1.js file3.png file4.tiff file5.jpg note.docx xd.pdf
+    xd1.pdf someother.pdf file9.webp file10.nm ll.pdf ll.xslx "some jpeg file.jpeg" \
+    "some png file.png" "some xlsx file.xlsx" "random py file.py")
+
+
 # bats test_tags=failure
 @test "testing upper boundaries for quality failure" {
     run optim_and_batch_convert_webp -q 1000
@@ -143,4 +149,46 @@ _common_setup
     assert_equal "$(mock_get_call_num "${mapping[cwebp]}")"  0
     assert_equal "$(mock_get_call_num "${mapping[cp]}")"  0
     assert_equal "$(mock_get_call_num "${mapping[convert]}")"  0
+
+    unmock_commands cwebp cp imageoptim convert
+
+}
+
+# bats test_tags=success
+@test "testing success case 3 -- no image resizing, or art direction" {
+    declare -A mapping
+    mock_commands mapping cwebp mkdir imageoptim convert cp
+
+    # mocking a glob expanding to everything in current dir
+    run optim_and_batch_convert_webp -o some_output_dir -k some_opt_dir "${mock_list_files[@]}"
+    # since we are mocking mkdir, everytime we do a conditional check to see if the
+    # optimized directory is created, it will fail, resulting in the mkdir being called
+    # again -- which is expected behaviour as we don't actually want the directory to
+    # be made in the test
+    assert_success
+    assert_equal "$(mock_get_call_num "${mapping[mkdir]}")"  9
+    assert_equal "$(mock_get_call_args "${mapping[mkdir]}" 1)" "some_opt_dir"
+    assert_equal "$(mock_get_call_args "${mapping[mkdir]}" 2)" "some_output_dir"
+    assert_equal "$(mock_get_call_args "${mapping[mkdir]}" 9)" "some_output_dir"
+    
+    assert_equal "$(mock_get_call_num "${mapping[imageoptim]}")"  1
+    assert_equal "$(mock_get_call_args "${mapping[imageoptim]}")" \
+        " some_opt_dir/*"
+
+    assert_equal "$(mock_get_call_num "${mapping[cwebp]}")"  8
+    assert_equal "$(mock_get_call_args "${mapping[cwebp]}" 1)" \
+		"-q 75 some_opt_dir/file1.jpeg -o some_output_dir/file1.webp"
+    assert_equal "$(mock_get_call_args "${mapping[cwebp]}" 2)" \
+		"-q 75 some_opt_dir/file2.jpeg -o some_output_dir/file2.webp"
+    assert_equal "$(mock_get_call_args "${mapping[cwebp]}" 7)" \
+		"-q 75 some_opt_dir/some jpeg file.jpeg -o some_output_dir/some jpeg file.webp"
+    assert_equal "$(mock_get_call_args "${mapping[cwebp]}" 8)" \
+		"-q 75 some_opt_dir/some png file.png -o some_output_dir/some png file.webp"
+
+    assert_equal "$(mock_get_call_num "${mapping[cp]}")" 8
+
+    assert_equal "$(mock_get_call_num "${mapping[convert]}")"  0
+
+    # unmock_commands cwebp cp imageoptim convert
+
 }
