@@ -26,8 +26,8 @@ NO_STATS_IMAGEOPTIM=""
 # with three width variables for tablets, mobiles and desktops,
 # that can be set by argument
 RESIZE_IMAGES=false
-declare -i WIDTH_TABLET=1200
-declare -i WIDTH_MOBILE=615
+declare -i WIDTH_TABLET=1300
+declare -i WIDTH_MOBILE=750
 declare -i WIDTH_DESKTOP=1920
 
 help() {
@@ -106,26 +106,27 @@ optim_and_batch_process_webp() {
 		# optimize_files
 		files_to_convert_to_webp=("${resized_image_filelist[@]}")
 	else
-		optimize_files "${filtered_file_list[@]}"
+		# if you are resizing images, then you don't have to make explicit
+		# copies of them before using imageoptim to compress them - as the
+		# ImageMagick will deal with that by itself
+		copy_files_without_path "${filtered_file_list[@]}"
 	fi
+
+	optimize_files
 
 	for file in "${files_to_convert_to_webp[@]}"; do
 		process_to_webp_logic "${file}"
 	done
 }
 
-optimize_files() {
-	# if you are resizing images, then you don't have to make explicit
-	# copies of them before using imageoptim to compress them - as the
-	# ImageMagick will deal with that by itself
-	if ! "${RESIZE_IMAGES}"; then
-		for file in "$@"; do
-			file_name_without_path="${file##*/}"
-			cp "${file}" "${DIR_OPTIMIZED_IMAGES}/${file_name_without_path}"
-		done
-	fi
+copy_files_without_path() {
+	for file in "$@"; do
+		file_name_without_path="${file##*/}"
+		cp "${file}" "${DIR_OPTIMIZED_IMAGES}/${file_name_without_path}"
+	done
+}
 
-	# run imageoptim at once over every image in the optimized_images directory
+optimize_files() {
 	imageoptim "${NO_STATS_IMAGEOPTIM}" "${DIR_OPTIMIZED_IMAGES}/*"
 }
 

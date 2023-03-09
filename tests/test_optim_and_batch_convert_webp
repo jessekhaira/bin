@@ -6,6 +6,9 @@ mock_list_files=(file1.jpeg file2.jpeg random_file \
     xd1.pdf someother.pdf file9.webp file10.nm ll.pdf ll.xslx "some jpeg file.jpeg" \
     "some png file.png" "some xlsx file.xlsx" "random py file.py")
 
+WIDTH_TABLET=1300
+WIDTH_MOBILE=750
+WIDTH_DESKTOP=1920
 
 # bats test_tags=failure
 @test "testing upper boundaries for quality failure" {
@@ -115,7 +118,7 @@ mock_list_files=(file1.jpeg file2.jpeg random_file \
 }
 
 # bats test_tags=success
-@test "testing success case 1 -- no image resizing, or art direction" {
+@test "integration testing success case 1 -- no image resizing" {
     declare -A mapping
     mock_commands mapping cwebp mkdir imageoptim convert cp
 
@@ -134,7 +137,7 @@ mock_list_files=(file1.jpeg file2.jpeg random_file \
 }
 
 # bats test_tags=success
-@test "testing success case 2 -- no image resizing, or art direction" {
+@test "integration testing success case 2 -- no image resizing" {
     declare -A mapping
     mock_commands mapping cwebp mkdir imageoptim convert cp
 
@@ -155,12 +158,12 @@ mock_list_files=(file1.jpeg file2.jpeg random_file \
 }
 
 # bats test_tags=success
-@test "testing success case 3 -- no image resizing, or art direction" {
+@test "integration testing success case 3 -- no image resizing" {
     declare -A mapping
     mock_commands mapping cwebp mkdir imageoptim convert cp
 
-    # mocking a glob expanding to everything in current dir
     run optim_and_batch_convert_webp -o some_output_dir -k some_opt_dir "${mock_list_files[@]}"
+    
     # since we are mocking mkdir, everytime we do a conditional check to see if the
     # optimized directory is created, it will fail, resulting in the mkdir being called
     # again -- which is expected behaviour as we don't actually want the directory to
@@ -189,6 +192,46 @@ mock_list_files=(file1.jpeg file2.jpeg random_file \
 
     assert_equal "$(mock_get_call_num "${mapping[convert]}")"  0
 
-    # unmock_commands cwebp cp imageoptim convert
+    unmock_commands cwebp cp imageoptim convert
+}
 
+
+# bats test_tags=success-resizing
+@test "integration testing success case 3 -- image resizing" {
+    declare -A mapping
+    mock_commands mapping cwebp mkdir imageoptim convert cp
+
+
+    run optim_and_batch_convert_webp -r -o some_output_dir -k some_opt_dir \
+        file1.jpeg
+
+    assert_success
+    assert_equal "$(mock_get_call_num "${mapping[mkdir]}")"  4
+    assert_equal "$(mock_get_call_args "${mapping[mkdir]}" 1)" "some_opt_dir"
+    assert_equal "$(mock_get_call_args "${mapping[mkdir]}" 2)" "some_output_dir"
+    
+
+    assert_equal "$(mock_get_call_num "${mapping[convert]}")" 3
+    assert_equal "$(mock_get_call_args "${mapping[convert]}" 1)" \
+        "-geometry ${WIDTH_DESKTOP}x file1.jpeg some_opt_dir/file1-desktop.jpeg"
+    assert_equal "$(mock_get_call_args "${mapping[convert]}" 2)" \
+        "-geometry ${WIDTH_MOBILE}x file1.jpeg some_opt_dir/file1-mobile.jpeg"
+    assert_equal "$(mock_get_call_args "${mapping[convert]}" 3)" \
+        "-geometry ${WIDTH_TABLET}x file1.jpeg some_opt_dir/file1-tablet.jpeg"
+
+    assert_equal "$(mock_get_call_num "${mapping[imageoptim]}")"  1
+    assert_equal "$(mock_get_call_args "${mapping[imageoptim]}")" \
+        " some_opt_dir/*"
+
+    assert_equal "$(mock_get_call_num "${mapping[cwebp]}")"  3
+    assert_equal "$(mock_get_call_args "${mapping[cwebp]}" 1)" \
+		"-q 75 some_opt_dir/file1-desktop.jpeg -o some_output_dir/file1-desktop.webp"
+    assert_equal "$(mock_get_call_args "${mapping[cwebp]}" 2)" \
+		"-q 75 some_opt_dir/file1-mobile.jpeg -o some_output_dir/file1-mobile.webp"
+    assert_equal "$(mock_get_call_args "${mapping[cwebp]}" 3)" \
+		"-q 75 some_opt_dir/file1-tablet.jpeg -o some_output_dir/file1-tablet.webp"
+
+    assert_equal "$(mock_get_call_num "${mapping[cp]}")" 0
+
+    unmock_commands cwebp cp imageoptim convert
 }
