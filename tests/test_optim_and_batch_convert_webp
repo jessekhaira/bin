@@ -6,9 +6,14 @@ mock_list_files=(file1.jpeg file2.jpeg random_file \
     xd1.pdf someother.pdf file9.webp file10.nm ll.pdf ll.xslx "some jpeg file.jpeg" \
     "some png file.png" "some xlsx file.xlsx" "random py file.py")
 
+filtered_image_files=(file1.jpeg file2.jpeg file3.png file4.tiff file5.jpg \
+    file9.webp "some jpeg file.jpeg" "some png file.png")
+
 WIDTH_TABLET=1300
 WIDTH_MOBILE=750
 WIDTH_DESKTOP=1920
+
+
 
 # bats test_tags=failure
 @test "testing upper boundaries for quality failure" {
@@ -118,7 +123,7 @@ WIDTH_DESKTOP=1920
 }
 
 # bats test_tags=success
-@test "integration testing success case 1 -- no image resizing" {
+@test "integration testing success case 1 -- no image resizing/art direction" {
     declare -A mapping
     mock_commands mapping cwebp mkdir imageoptim convert cp
 
@@ -137,7 +142,7 @@ WIDTH_DESKTOP=1920
 }
 
 # bats test_tags=success
-@test "integration testing success case 2 -- no image resizing" {
+@test "integration testing success case 2 -- no image resizing/art direction" {
     declare -A mapping
     mock_commands mapping cwebp mkdir imageoptim convert cp
 
@@ -158,7 +163,7 @@ WIDTH_DESKTOP=1920
 }
 
 # bats test_tags=success
-@test "integration testing success case 3 -- no image resizing" {
+@test "integration testing success case 3 -- no image resizing/art direction" {
     declare -A mapping
     mock_commands mapping cwebp mkdir imageoptim convert cp
 
@@ -204,7 +209,7 @@ WIDTH_DESKTOP=1920
 
 
 # bats test_tags=success-resizing
-@test "integration testing success case 3 -- image resizing" {
+@test "integration testing success case 3 -- image resolution" {
     declare -A mapping
     mock_commands mapping cwebp mkdir imageoptim convert cp
 
@@ -243,4 +248,49 @@ WIDTH_DESKTOP=1920
 
     unmock_commands cwebp cp imageoptim convert
 }
+
+# bats test_tags=success-resizing
+@test "integration testing success case 4 -- image resolution" {
+    declare -A mapping
+    mock_commands mapping cwebp mkdir imageoptim convert cp
+
+    run optim_and_batch_convert_webp -q 55 -r -S -o some_output_dir \
+       -k some_opt_dir -m 550 -t 1020 -d 1200 "${mock_list_files[@]}"
+
+    assert_success
+    assert_equal "$(mock_get_call_num "${mapping[mkdir]}")"  25
+    assert_equal "$(mock_get_call_args "${mapping[mkdir]}" 1)" "some_opt_dir"
+    assert_equal "$(mock_get_call_args "${mapping[mkdir]}" 2)" "some_output_dir"
+    assert_equal "$(mock_get_call_args "${mapping[mkdir]}" 25)" "some_output_dir"
+
+    assert_equal "$(mock_get_call_num "${mapping[convert]}")" 24
+
+    assert_equal "$(mock_get_call_num "${mapping[imageoptim]}")"  1
+    assert_equal "$(mock_get_call_args "${mapping[imageoptim]}")" \
+        "-S some_opt_dir/*"
+
+    assert_equal "$(mock_get_call_num "${mapping[cwebp]}")"  24
+    # no copying should happen, we are doing resizing
+    assert_equal "$(mock_get_call_num "${mapping[cp]}")" 0
+
+    # looks complicated but it just encapsulates all the assertions regarding
+    # image resizing + ensuring we invoke cwebp to convert to the .webp format
+    # correct for all the images, loop will run around 24 times
+    declare -a sizes=(1200 550 1020)
+    declare -a names=("-desktop" "-mobile" "-tablet")
+    declare -i call_count=1
+    for file in "${filtered_image_files[@]}"; do
+      for j in "${!sizes[@]}"; do
+        only_filename="${file%.*}"
+        ext="${file#*.}"
+        assert_equal "$(mock_get_call_args "${mapping[convert]}" $call_count)" \
+            "-geometry ${sizes[j]}x ${file} some_opt_dir/${only_filename}${names[j]}.${ext}"
+        assert_equal "$(mock_get_call_args "${mapping[cwebp]}" $call_count)" \
+        "-q 55 some_opt_dir/${only_filename}${names[j]}.${ext} -o some_output_dir/${only_filename}${names[j]}.webp"
+        call_count=$((call_count+1))
+      done
+    done
+    unmock_commands cwebp cp imageoptim convert
+}
+
 
