@@ -222,29 +222,29 @@ WIDTH_DESKTOP=1920
     assert_equal "$(mock_get_call_args "${mapping[mkdir]}" 1)" "some_opt_dir"
     assert_equal "$(mock_get_call_args "${mapping[mkdir]}" 2)" "some_output_dir"
     
-
     assert_equal "$(mock_get_call_num "${mapping[convert]}")" 3
-    assert_equal "$(mock_get_call_args "${mapping[convert]}" 1)" \
-        "-geometry ${WIDTH_DESKTOP}x file1.jpeg some_opt_dir/file1-desktop.jpeg"
-    assert_equal "$(mock_get_call_args "${mapping[convert]}" 2)" \
-        "-geometry ${WIDTH_MOBILE}x file1.jpeg some_opt_dir/file1-mobile.jpeg"
-    assert_equal "$(mock_get_call_args "${mapping[convert]}" 3)" \
-        "-geometry ${WIDTH_TABLET}x file1.jpeg some_opt_dir/file1-tablet.jpeg"
 
     assert_equal "$(mock_get_call_num "${mapping[imageoptim]}")"  1
     assert_equal "$(mock_get_call_args "${mapping[imageoptim]}")" \
         " some_opt_dir/*"
 
     assert_equal "$(mock_get_call_num "${mapping[cwebp]}")"  3
-    assert_equal "$(mock_get_call_args "${mapping[cwebp]}" 1)" \
-		"-q 75 some_opt_dir/file1-desktop.jpeg -o some_output_dir/file1-desktop.webp"
-    assert_equal "$(mock_get_call_args "${mapping[cwebp]}" 2)" \
-		"-q 75 some_opt_dir/file1-mobile.jpeg -o some_output_dir/file1-mobile.webp"
-    assert_equal "$(mock_get_call_args "${mapping[cwebp]}" 3)" \
-		"-q 75 some_opt_dir/file1-tablet.jpeg -o some_output_dir/file1-tablet.webp"
 
     # no copying should happen, we are doing resizing
     assert_equal "$(mock_get_call_num "${mapping[cp]}")" 0
+
+    # run assertions for convert command, and cwebp command which is
+    # where we make sure all the image files have arrived appropriately
+    declare -a sizes=(1920 750 1300)
+    declare -a names=("-desktop" "-mobile" "-tablet")
+    declare -i call_count=1
+    for j in "${!sizes[@]}"; do
+      assert_equal "$(mock_get_call_args "${mapping[convert]}" $call_count)" \
+          "-geometry ${sizes[j]}x file1.jpeg some_opt_dir/file1${names[j]}.jpeg"
+      assert_equal "$(mock_get_call_args "${mapping[cwebp]}" $call_count)" \
+          "-q 75 some_opt_dir/file1${names[j]}.jpeg -o some_output_dir/file1${names[j]}.webp"
+      call_count=$((call_count+1))
+    done
 
     unmock_commands cwebp cp imageoptim convert
 }
