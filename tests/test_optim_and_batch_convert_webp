@@ -9,12 +9,6 @@ mock_list_files=(file1.jpeg file2.jpeg random_file \
 filtered_image_files=(file1.jpeg file2.jpeg file3.png file4.tiff file5.jpg \
     file9.webp "some jpeg file.jpeg" "some png file.png")
 
-WIDTH_TABLET=1300
-WIDTH_MOBILE=750
-WIDTH_DESKTOP=1920
-
-
-
 # bats test_tags=failure
 @test "testing upper boundaries for quality failure" {
     run optim_and_batch_convert_webp -q 1000
