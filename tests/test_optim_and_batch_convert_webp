@@ -229,7 +229,7 @@ WIDTH_DESKTOP=1920
 }
 
 
-# bats test_tags=success-resizing
+# bats test_tags=success,img_reso
 @test "integration testing success case 3 -- image resolution" {
     declare -A mapping
     mock_commands mapping cwebp mkdir imageoptim convert cp
@@ -270,7 +270,7 @@ WIDTH_DESKTOP=1920
     unmock_commands cwebp cp imageoptim convert
 }
 
-# bats test_tags=success-resizing
+# bats test_tags=success,img_reso
 @test "integration testing success case 4 -- image resolution" {
     declare -A mapping
     mock_commands mapping cwebp mkdir imageoptim convert cp
@@ -314,7 +314,7 @@ WIDTH_DESKTOP=1920
     unmock_commands cwebp cp imageoptim convert
 }
 
-# bats test_tags=success-art-direction
+# bats test_tags=success,art-direction
 @test "integration testing success case 5 -- art direction" {
     declare -A mapping
     mock_commands mapping cwebp mkdir imageoptim convert cp
