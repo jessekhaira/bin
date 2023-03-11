@@ -54,6 +54,18 @@ WIDTH_DESKTOP=1920
     assert_failure
 }
 
+#bats test_tags=failure,art_img
+@test "testing that you can't perform art direction + img resolution simul" {
+    run optim_and_batch_convert_webp -r -a file1.jpeg
+    assert_output -p "Can't perform both art direction and image resizing"
+    assert_failure 
+
+    run optim_and_batch_convert_webp -ra file1.jpeg
+    assert_output -p "Can't perform both art direction and image resizing"
+    assert_failure 
+
+}
+
 # bats test_tags=failure
 @test "testing setting size for mobile images failure" {
     run optim_and_batch_convert_webp -m 2300
