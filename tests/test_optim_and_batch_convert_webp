@@ -32,6 +32,7 @@ WIDTH_DESKTOP=1920
     run optim_and_batch_convert_webp -q 100.5
     assert_output -p "Quality must be an integer between 0 and 100"
     assert_failure
+
 }
 
 # bats test_tags=failure
@@ -292,5 +293,3 @@ WIDTH_DESKTOP=1920
     done
     unmock_commands cwebp cp imageoptim convert
 }
-
-

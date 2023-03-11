@@ -62,8 +62,8 @@ help() {
 		                                    for tablets of 1200 px, 615px for mobiles, and 1920px for
 		                                    desktops. For all images passed as input to the command, three
 		                                    images will be output for each automatically, with one for tablets,
-		                                    one for mobiles, and one for desktops.
-
+		                                    one for mobiles, and one for desktops. Only one of -r or -a should
+		                                    be specified. 
 
 		  -a                                Created for the art direction case where the user has manually modified
 		                                    an image for use with mobiles, tablets, and desktops. You must specify
@@ -72,7 +72,7 @@ help() {
 		                                    image. Similar to image resizing with the -r option, images will be
 		                                    resized to a width of 1200px, 615px, and 1920 px for tablets, mobiles,
 		                                    and desktops respectively, which can be changed with the options
-		                                    provided.
+		                                    provided. Only one of -r or -a should be specified. 
 
 
 		  -t int                            If resizing is set, this is the width that tablet images will be
@@ -268,7 +268,7 @@ while getopts ":hSo:q:k:rat:m:d:" optarg "$@"; do
         if eval verify_size "${OPTARG}" 0 2200; then
             WIDTH_MOBILE=$OPTARG
         else
-            echo "Mobile size must be an integer between 0 and 2200px"
+            echo "Mobile size must be an integer between 0 and 2200px" >&2
             exit 1
         fi
         ;;
@@ -277,7 +277,7 @@ while getopts ":hSo:q:k:rat:m:d:" optarg "$@"; do
         if eval verify_size "${OPTARG}" 0 2200; then
             WIDTH_TABLET=$OPTARG
         else
-            echo "Tablet size must be an integer between 0 and 2200px"
+            echo "Tablet size must be an integer between 0 and 2200px" >&2
             exit 1
         fi
         ;;
@@ -286,17 +286,27 @@ while getopts ":hSo:q:k:rat:m:d:" optarg "$@"; do
         if eval verify_size "${OPTARG}" 0 2200; then
             WIDTH_DESKTOP=$OPTARG
         else
-            echo "Desktop size must be an integer between 0 and 2200px"
+            echo "Desktop size must be an integer between 0 and 2200px" >&2
             exit 1
         fi
         ;;
 
     r)
-        IMG_RESOLUTION_RESIZING=true
+        if "${ART_DIRECTION_RESIZING}"; then
+            echo "Can't perform both art direction and image resizing" >&2
+            exit 1
+        else
+            IMG_RESOLUTION_RESIZING=true
+        fi
         ;;
 
     a)
-        ART_DIRECTION_RESIZING=true
+        if "${IMG_RESOLUTION_RESIZING}"; then
+            echo "Can't perform both art direction and image resizing" >&2
+            exit 1
+        else
+            ART_DIRECTION_RESIZING=true
+        fi
         ;;
 
     o)
@@ -315,7 +325,7 @@ while getopts ":hSo:q:k:rat:m:d:" optarg "$@"; do
         if eval verify_size "${OPTARG}" 0 100; then
             QUALITY=$OPTARG
         else
-            echo "Quality must be an integer between 0 and 100"
+            echo "Quality must be an integer between 0 and 100" >&2
             exit 1
         fi
         ;;
