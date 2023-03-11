@@ -357,3 +357,56 @@ WIDTH_DESKTOP=1920
     unmock_commands cwebp cp imageoptim convert
 }
 
+# bats test_tags=success,art-direction
+@test "integration testing success case 6 -- art direction" {
+    declare -A mapping
+    mock_commands mapping cwebp mkdir imageoptim convert cp
+    declare -a file_arr=(file1-mobile.jpeg file2-desktop.png file2-tablet.jpg \
+                         file4-mobile.tiff file.html file2.js "file4  -mobile.webp" \
+                         "file 10  -desktop.tif" xa.py l0.C file4.png file5.jpeg)
+
+    declare -a filtered_files=(file1-mobile.jpeg file2-desktop.png file2-tablet.jpg \
+                              file4-mobile.tiff "file4  -mobile.webp" "file 10  -desktop.tif" \
+                              file4.png file5.jpeg)
+    
+    run optim_and_batch_convert_webp -q 85 -a -o o_dir \
+       -k opt_dir -m 900 -t 1300 -d 1000 "${file_arr[@]}"
+
+    assert_success
+    assert_equal "$(mock_get_call_num "${mapping[mkdir]}")" 9
+    assert_equal "$(mock_get_call_args "${mapping[mkdir]}" 1)" "opt_dir"
+    assert_equal "$(mock_get_call_args "${mapping[mkdir]}" 4)" "o_dir"
+    assert_equal "$(mock_get_call_args "${mapping[mkdir]}" 9)" "o_dir"
+
+    assert_equal "$(mock_get_call_num "${mapping[convert]}")" 6
+
+    assert_equal "$(mock_get_call_num "${mapping[imageoptim]}")"  1
+    assert_equal "$(mock_get_call_args "${mapping[imageoptim]}")" \
+        " opt_dir/*"
+
+    assert_equal "$(mock_get_call_num "${mapping[cwebp]}")"  8
+    assert_equal "$(mock_get_call_num "${mapping[cp]}")" 2
+
+    # looks complicated but it just encapsulates all the assertions regarding
+    # image resizing + ensuring we invoke cwebp to convert to the .webp format
+    # correct for all the images, loop will run around 24 times
+    declare -a sizes=(900 1000 1300 900 900 1000)
+    declare -i call_count=1
+    for i in {0..7}; do
+        file="${filtered_files[i]}"
+        only_filename="${file%.*}"
+        ext="${file#*.}"
+        # file4.png and file5.jpeg shouldn't be converted, they can't be detected
+        # to be for a specific device for art direction, hence the condition
+        if ((i<=5)); then
+            assert_equal "$(mock_get_call_args "${mapping[convert]}" $call_count)" \
+                "-geometry ${sizes[i]}x ${file} opt_dir/${only_filename}.${ext}"
+        fi
+        assert_equal "$(mock_get_call_args "${mapping[cwebp]}" $call_count)" \
+            "-q 85 opt_dir/${only_filename}.${ext} -o o_dir/${only_filename}.webp"
+        call_count=$((call_count+1))
+    done
+
+    unmock_commands cwebp cp imageoptim convert
+}
+
