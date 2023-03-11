@@ -293,3 +293,47 @@ WIDTH_DESKTOP=1920
     done
     unmock_commands cwebp cp imageoptim convert
 }
+
+# bats test_tags=success-art-direction
+@test "integration testing success case 5 -- art direction" {
+    declare -A mapping
+    mock_commands mapping cwebp mkdir imageoptim convert cp
+    declare -a file_arr=(file1-mobile.jpeg file2-desktop.png file2-tablet.jpg file4-mobile.jpeg)
+
+    run optim_and_batch_convert_webp -q 35 -a -S -o o_dir \
+       -k opt_dir -m 890 -t 1300 -d 2100 "${file_arr[@]}"
+
+    assert_success
+    assert_equal "$(mock_get_call_num "${mapping[mkdir]}")" 5
+    assert_equal "$(mock_get_call_args "${mapping[mkdir]}" 1)" "opt_dir"
+    assert_equal "$(mock_get_call_args "${mapping[mkdir]}" 2)" "o_dir"
+    assert_equal "$(mock_get_call_args "${mapping[mkdir]}" 5)" "o_dir"
+
+    assert_equal "$(mock_get_call_num "${mapping[convert]}")" 4
+
+    assert_equal "$(mock_get_call_num "${mapping[imageoptim]}")"  1
+    assert_equal "$(mock_get_call_args "${mapping[imageoptim]}")" \
+        "-S opt_dir/*"
+
+    assert_equal "$(mock_get_call_num "${mapping[cwebp]}")"  4
+    # no copying should happen, we are doing art-direction
+    assert_equal "$(mock_get_call_num "${mapping[cp]}")" 0
+
+    # looks complicated but it just encapsulates all the assertions regarding
+    # image resizing + ensuring we invoke cwebp to convert to the .webp format
+    # correct for all the images, loop will run around 24 times
+    declare -a sizes=(890 2100 1300 890)
+    declare -i call_count=1
+    for i in "${!file_arr[@]}"; do
+        file="${file_arr[i]}"
+        only_filename="${file%.*}"
+        ext="${file#*.}"
+        assert_equal "$(mock_get_call_args "${mapping[convert]}" $call_count)" \
+            "-geometry ${sizes[i]}x ${file} opt_dir/${only_filename}.${ext}"
+        assert_equal "$(mock_get_call_args "${mapping[cwebp]}" $call_count)" \
+            "-q 35 opt_dir/${only_filename}.${ext} -o o_dir/${only_filename}.webp"
+        call_count=$((call_count+1))
+    done
+    unmock_commands cwebp cp imageoptim convert
+}
+
