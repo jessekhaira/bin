@@ -15,3 +15,8 @@ _common_setup
     run verify_size 50 80 90
     assert_failure
 }
+
+@test "test 4" {
+    run verify_size a b c
+    assert_failure
+}
