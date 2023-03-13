@@ -7,8 +7,12 @@
 # being verified, and the second argument should be
 # the inclusive low bound, and the third argument
 # should be the inclusive high bound
-if (($1 >= $2 && $1 <= $3)); then
-    exit 0
-else
-    exit 1
-fi
+verify_size() {
+    if (($1 >= $2 && $1 <= $3)); then
+        exit 0
+    else
+        exit 1
+    fi
+}
+
+verify_size "$@"

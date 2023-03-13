@@ -26,7 +26,6 @@ filtered_image_files=(file1.jpeg file2.jpeg file3.png file4.tiff file5.jpg \
     run optim_and_batch_convert_webp -q 100.5
     assert_output -p "Quality must be an integer between 0 and 100"
     assert_failure
-
 }
 
 # bats test_tags=failure
