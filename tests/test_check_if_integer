@@ -1,0 +1,7 @@
+load 'test_helper/common-setup'
+_common_setup
+
+@test "test 1" {
+    run check_if_integer 5
+    assert_success
+}
