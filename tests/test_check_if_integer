@@ -20,3 +20,8 @@ _common_setup
     run check_if_integer ab
     assert_failure
 }
+
+@test "test 5" {
+    run check_if_integer 912301
+    assert_success
+}
