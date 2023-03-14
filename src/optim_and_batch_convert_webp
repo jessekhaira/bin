@@ -59,7 +59,7 @@ help() {
 
 
 		  -r                                If set, image resizing will be performed with a default width
-		                                    for tablets of 1200 px, 615px for mobiles, and 1920px for
+		                                    for tablets of 1300 px, 750px for mobiles, and 1920px for
 		                                    desktops. For all images passed as input to the command, three
 		                                    images will be output for each automatically, with one for tablets,
 		                                    one for mobiles, and one for desktops. Only one of -r or -a should
@@ -76,14 +76,14 @@ help() {
 
 
 		  -t int                            If resizing is set, this is the width that tablet images will be
-		                                    resized to in pixels. Defaults to 1200px. If more then one image is passed
+		                                    resized to in pixels. Defaults to 1300px. If more then one image is passed
 		                                    to the command, then the resizing will target images with a filename
 		                                    that include "-tablet" at the end of the name. If none are detected,
 		                                    then resizing will not occur. 
 
 
 		  -m int                            If resizing is set, this is the width that mobile images will be
-		                                    resized to in pixels. Defaults to 615px. If more then one image is passed
+		                                    resized to in pixels. Defaults to 750px. If more then one image is passed
 		                                    to the command, then the resizing will target images with a filename
 		                                    that include "-mobile" at the end of the name. If none are detected,
 		                                    then resizing will not occur. 
