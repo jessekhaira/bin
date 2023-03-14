@@ -10,3 +10,8 @@ _common_setup
     run check_if_integer 2.2
     assert_failure
 }
+
+@test "test 3" {
+    run check_if_integer 9123adskaj
+    assert_failure
+}
