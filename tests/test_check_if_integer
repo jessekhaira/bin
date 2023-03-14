@@ -15,3 +15,8 @@ _common_setup
     run check_if_integer 9123adskaj
     assert_failure
 }
+
+@test "test 4" {
+    run check_if_integer ab
+    assert_failure
+}
