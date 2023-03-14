@@ -3,16 +3,25 @@
 # to determine if it falls within an accepted
 # bound
 
-# First positional parameter should be the argument
+# First positional parameter should be the int argument
 # being verified, and the second argument should be
 # the inclusive low bound, and the third argument
 # should be the inclusive high bound
 verify_size() {
+    verify_all_integer_args "$@"
     if (($1 >= $2 && $1 <= $3)); then
         exit 0
     else
         exit 1
     fi
+}
+
+verify_all_integer_args() {
+    for arg in "$@"; do
+        if ! check_if_integer "$arg"; then
+            exit 1
+        fi
+    done
 }
 
 verify_size "$@"

@@ -20,3 +20,8 @@ _common_setup
     run verify_size a b c
     assert_failure
 }
+
+@test "test 5" {
+    run verify_size 2/3 6 8
+    assert_failure
+}
