@@ -31,3 +31,9 @@ _common_setup
     run check_if_integer --$$--
     assert_failure
 }
+
+
+@test "test 7" {
+    run check_if_integer ///';-'./
+    assert_failure
+}
