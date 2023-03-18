@@ -25,3 +25,9 @@ _common_setup
     run check_if_integer 912301
     assert_success
 }
+
+
+@test "test 6" {
+    run check_if_integer --$$--
+    assert_failure
+}
