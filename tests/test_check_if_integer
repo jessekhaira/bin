@@ -37,3 +37,8 @@ _common_setup
     run check_if_integer ///';-'./
     assert_failure
 }
+
+@test "test 8" {
+    run check_if_integer 120390123010193123
+    assert_success
+}
