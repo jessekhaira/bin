@@ -27,6 +27,7 @@ NO_STATS_IMAGEOPTIM=""
 # that can be set by argument
 IMG_RESOLUTION_RESIZING=false
 ART_DIRECTION_RESIZING=false
+EFFICIENT_PROCESS_TABLETS=false
 declare -i WIDTH_TABLET=1300
 declare -i WIDTH_MOBILE=750
 declare -i WIDTH_DESKTOP=1920
@@ -59,11 +60,16 @@ help() {
 
 
 		  -r                                If set, image resizing will be performed with a default width
-		                                    for tablets of 1300 px, 750px for mobiles, and 1920px for
+		                                    for tablets of 1300px, 750px for mobiles, and 1920px for
 		                                    desktops. For all images passed as input to the command, three
 		                                    images will be output for each automatically, with one for tablets,
 		                                    one for mobiles, and one for desktops. Only one of -r or -a should
 		                                    be specified. 
+        
+          -e                                Run the image resizing efficiently, just for tablet sized images 
+                                            with a default width of 1300px. One image produced that will be
+                                            resized, compressed, and converted to .webp.
+                
 
 		  -a                                Created for the art direction case where the user has manually modified
 		                                    an image for use with mobiles, tablets, and desktops. You must specify
@@ -299,6 +305,11 @@ while getopts ":hSo:q:k:rat:m:d:" optarg "$@"; do
             IMG_RESOLUTION_RESIZING=true
         fi
         ;;
+    
+    e) 
+        EFFICIENT_PROCESS_TABLETS=true
+        ;;
+
 
     a)
         if "${IMG_RESOLUTION_RESIZING}"; then
