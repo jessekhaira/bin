@@ -108,13 +108,35 @@ help() {
 optim_and_batch_process_webp() {
     declare -a filtered_file_list
     filter_list_images filtered_file_list "$@"
-
+    
     if [[ ! -d "${DIR_OPTIMIZED_IMAGES}" ]]; then
         mkdir "${DIR_OPTIMIZED_IMAGES}"
     fi
-
+    
     declare -a files_to_convert_to_webp=("${filtered_file_list[@]}")
-    if "${IMG_RESOLUTION_RESIZING}"; then
+
+    if "${EFFICIENT_PROCESS_TABLETS}"; then
+        declare -a new_file_list=()
+        declare -a base_file_names=()
+        for file in "${filtered_file_list[@]}"; do
+            file_name_without_path="${file##*/}"
+            base_file_name="${file_name_without_path%.*}"
+            extension="${file_name_without_path##*.}"
+
+            new_file_name="${DIR_OPTIMIZED_IMAGES}/${base_file_name}-t.${extension}"
+            convert -geometry "1200x" "${file}" \
+                "${new_file_name}"
+            base_file_names+=("${base_file_name}-t.${extension}")
+            new_file_list+=("${new_file_name}")
+        done
+
+        for file in "${new_file_list[@]}"; do
+            process_to_webp_logic "${file}"
+        done
+        
+        return
+        
+    elif "${IMG_RESOLUTION_RESIZING}"; then
         declare -a resized_image_filelist
         image_resolution_resizing resized_image_filelist "${filtered_file_list[@]}"
         files_to_convert_to_webp=("${resized_image_filelist[@]}")
@@ -253,7 +275,7 @@ if [[ $1 == "help" ]]; then
     exit 1
 fi
 
-while getopts ":hSo:q:k:rat:m:d:" optarg "$@"; do
+while getopts ":hSo:q:k:reat:m:d:" optarg "$@"; do
     case $optarg in
     :)
         echo "Option -$OPTARG requires an argument." >&2
